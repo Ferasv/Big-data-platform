@@ -1,0 +1,8 @@
+connect-plugins/
+.env
+config/
+plugins/
+hadoop-conf/
+hdfs-sink.json
+logs/
+env/

@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  kafka-1:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-1
+    hostname: kafka-1
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_KRAFT_MODE: "true"
+
+      KAFKA_CLUSTER_ID: "EVnngm_7SRazMJabc3ACHg"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-1:9093"
+
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka-1:29092,EXTERNAL://192.168.126.116:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+
+    volumes:
+      - kafka-1-data:/var/lib/kafka/data
+
+    command:
+      - bash
+      - -c
+      - |
+          kafka-storage format --ignore-formatted \
+            --cluster-id=${KAFKA_CLUSTER_ID} \
+            --config /etc/kafka/server.properties;
+          /etc/confluent/docker/run
+
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.8.3
+    container_name: schema-registry
+    depends_on:
+      - kafka-1
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka-1:29092"
+      SCHEMA_REGISTRY_HOST_NAME: "schema-registry"
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+
+
+  akhq:
+    image: tchiotludo/akhq
+    container_name: akhq
+    depends_on:
+      - kafka-1
+    ports:
+      - "8080:8080"
+    environment:
+      AKHQ_CONFIGURATION: |-
+        akhq:
+          connections:
+            cluster-1:
+              properties:
+                bootstrap.servers:
+                  - kafka-1:29092
+            cluster-2:
+              properties:
+                bootstrap.servers:
+                  - 192.168.126.48:9092
+            cluster-3:
+              properties:
+                bootstrap.servers:
+                  - 192.168.126.51:9092
+
+                
+          schema-registry:
+            url: "http://schema-registry:8081"
+
+
+volumes:
+  kafka-1-data:

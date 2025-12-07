@@ -1,40 +1,40 @@
 version: '3.8'
 
 services:
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.0.1
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
   kafka-1:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:6.0.1
     container_name: kafka-1
     hostname: kafka-1
+    depends_on:
+      - zookeeper
     ports:
       - "9092:9092"
-      - "9093:9093"
     environment:
-      KAFKA_KRAFT_MODE: "true"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_BROKER_ID: 1
 
-      KAFKA_CLUSTER_ID: "EVnngm_7SRazMJabc3ACHg"
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:29092,EXTERNAL://192.168.126.116:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
 
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-1:9093"
-
-      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka-1:29092,EXTERNAL://192.168.126.116:9092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
 
     volumes:
       - kafka-1-data:/var/lib/kafka/data
-
-    command:
-      - bash
-      - -c
-      - |
-          kafka-storage format --ignore-formatted \
-            --cluster-id=${KAFKA_CLUSTER_ID} \
-            --config /etc/kafka/server.properties;
-          /etc/confluent/docker/run
 
 
   schema-registry:
@@ -56,7 +56,7 @@ services:
     depends_on:
       - kafka-1
     ports:
-      - "8080:8080"
+      - "8089:8080"
     environment:
       AKHQ_CONFIGURATION: |-
         akhq:
@@ -78,6 +78,6 @@ services:
           schema-registry:
             url: "http://schema-registry:8081"
 
-
 volumes:
   kafka-1-data:
+  

@@ -3,6 +3,7 @@ from faker import Faker
 import uuid
 import time
 from datetime import datetime
+import json
 
 fake = Faker()
 
@@ -13,13 +14,14 @@ def generate_random_user():
     created_at = datetime.utcnow().isoformat()
     price = round(random.uniform(5.0, 140.0), 2)
 
-    return {
+    return json.dumps({
         "name": name,
         "phone": phone,
         "wallet": price,
         
-    }
+    })
 def generate_random_driver():
+    
     driver_id = str(uuid.uuid4())
     name = fake.name()
     phone = fake.phone_number()
@@ -27,14 +29,14 @@ def generate_random_driver():
     created_at = datetime.utcnow().isoformat()
     
 
-    return {
+    return json.dumps({
         "name": name,
         "phone": phone,
         "status": "available",
         "vehicle_type": vehicle_type,
         "wallet": 0
         
-    }
+    })
 
 def main():
     user = generate_random_user()
@@ -42,6 +44,5 @@ def main():
     
     # print(f"Generated User: {user}")
     # print(f"Generated Driver: {driver}")
-    time.sleep(5)
     
     return user, driver

@@ -2,6 +2,7 @@ from confluent_kafka import Producer, KafkaException
 import socket
 import random
 import time
+from create_user import main
 
 def is_reachable(host, port, timeout=1.0):
     try:
@@ -11,10 +12,10 @@ def is_reachable(host, port, timeout=1.0):
         return False
 
 
-# # Cluster A
-# CLUSTER_A = {"bootstrap.servers": "localhost:9092"}            # example
-# A_HOST = "localhost"
-# A_PORT = 9092
+# Cluster A
+CLUSTER_A = {"bootstrap.servers": "localhost:9092"}            # example
+A_HOST = "localhost"
+A_PORT = 9092
 
 # Cluster B
 # CLUSTER_B = {"bootstrap.servers": "192.168.126.48:9092"}       # example
@@ -23,9 +24,9 @@ def is_reachable(host, port, timeout=1.0):
 
 
 
-CLUSTER_B = {"bootstrap.servers": "192.168.126.51:9092"}       # example
-B_HOST = "192.168.126.51"
-B_PORT = 9092
+# CLUSTER_B = {"bootstrap.servers": "192.168.126.51:9092"}       # example
+# B_HOST = "192.168.126.51"
+# B_PORT = 9092
 
 
 
@@ -36,9 +37,9 @@ def get_active_producer():
     #     print("Using Cluster A")
     #     return Producer(CLUSTER_A)
     
-    if is_reachable(B_HOST, B_PORT):
-        print("Using Cluster B")
-        return Producer(CLUSTER_B)
+    if is_reachable(A_HOST, A_PORT):
+        print("Using Cluster A")
+        return Producer(CLUSTER_A)
     
     raise RuntimeError("No Kafka cluster available")
 
@@ -54,10 +55,11 @@ def send_message(topic, value):
 
 
 # Example usage
-
-while True:
-    random_number = random.randint(1, 100)
-    send_message("my_first_topic", str(random_number))
-    time.sleep(8)
+if __name__ == "__main__":
     
-    print("Message sent")
+    while True:
+        user_data,driver = main()    
+        send_message("Feras", str(user_data))
+        time.sleep(8)
+        
+        print("Message sent")

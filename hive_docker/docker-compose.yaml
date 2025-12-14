@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  hive:
+    image: apache/hive:4.1.0
+    container_name: hive4
+    environment:
+      SERVICE_NAME: hiveserver2
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    volumes:
+      - /var/lib/hive/data:/var/lib/hive/data
+# port :10000
+# Purpose: Client connections
+# Who uses it:
+# Beeline
+# JDBC / ODBC clients
+# Spark / external apps
+# Protocol: Thrift over TCP
+# -------------------------------------------------------------------------------------
+# port 10002
+# Purpose: Web / HTTP-based access
+# Who uses it:
+# HTTP clients
+# REST-like access (if enabled)
+# Protocol: HTTP
+
+
+#--------------------------------------------------
+
+##the data will be found in the /var/lib/hive/data from youre machine 
+
+volumes:
+  hive-data:

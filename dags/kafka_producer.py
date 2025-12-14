@@ -3,6 +3,7 @@ import socket
 import random
 import time
 from create_user import main
+import socket
 
 def is_reachable(host, port, timeout=1.0):
     try:
@@ -13,9 +14,16 @@ def is_reachable(host, port, timeout=1.0):
 
 
 # Cluster A
-CLUSTER_A = {"bootstrap.servers": "localhost:9092"}            # example
-A_HOST = "localhost"
-A_PORT = 9092
+CLUSTER_A = {
+    "bootstrap.servers": "192.168.126.116:9092",
+    "queue.buffering.max.kbytes": "1048576",     # 1GB buffer
+    "queue.buffering.max.messages": "1000000",   # message queue
+    "linger.ms": "5",                            # micro-batching
+    "message.timeout.ms": "60000",               # 60 sec timeout
+    "client.id": socket.gethostname(),
+}
+           # example
+
 
 # Cluster B
 # CLUSTER_B = {"bootstrap.servers": "192.168.126.48:9092"}       # example
@@ -30,23 +38,12 @@ A_PORT = 9092
 
 
 
-def get_active_producer():
-    """Return a producer for the first available cluster."""
-    
-    # if is_reachable(A_HOST, A_PORT):
-    #     print("Using Cluster A")
-    #     return Producer(CLUSTER_A)
-    
-    if is_reachable(A_HOST, A_PORT):
-        print("Using Cluster A")
-        return Producer(CLUSTER_A)
-    
-    raise RuntimeError("No Kafka cluster available")
+
 
 
 def send_message(topic, value):
     """Send message using the first available cluster."""
-    p = get_active_producer()
+    p = Producer(CLUSTER_A)
     try:
         p.produce(topic, value.encode("utf-8"))
         p.flush()
@@ -59,7 +56,7 @@ if __name__ == "__main__":
     
     while True:
         user_data,driver = main()    
-        send_message("Feras", str(user_data))
-        time.sleep(8)
+        send_message("data_user", str(user_data))
+        
         
         print("Message sent")

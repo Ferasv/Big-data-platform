@@ -54,9 +54,11 @@ def send_message(topic, value):
 # Example usage
 if __name__ == "__main__":
     
+    
     while True:
-        user_data,driver = main()    
-        send_message("data_user", str(user_data))
+        user_data,driver = main() 
+        send_message("customer", str(user_data))
+        send_message("driver", str(driver))
         
-        
+        time.sleep(2)
         print("Message sent")

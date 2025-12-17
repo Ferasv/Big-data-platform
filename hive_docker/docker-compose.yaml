@@ -6,17 +6,50 @@ services:
     container_name: hive4
     environment:
       SERVICE_NAME: hiveserver2
+      HIVE_METASTORE_URIS: thrift://metastore:9083
     ports:
       - "10000:10000"
-      - "10002:10002"
+    depends_on:
+      - metastore
+
+  metastore:
+    image: apache/hive:4.1.0
+    container_name: hive-metastore
+    environment:
+      SERVICE_NAME: metastore
+      DB_TYPE: postgres
+      DB_HOST: metastore-db
+      DB_NAME: metastore
+      DB_USER: hive
+      DB_PASSWORD: hive
+      
+    ports:
+      - "9083:9083"
+    depends_on:
+      - metastore-db
+    restart: unless-stopped
     volumes:
-      - /var/lib/hive/data:/var/lib/hive/data
+      ./hive-site.xml:/opt/hive/conf/hive-site.xml
+
+  metastore-db:
+    image: postgres:14
+    container_name: hive-metastore-db
+    environment:
+      POSTGRES_DB: metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+    volumes:
+      - hive-metastore-db:/var/lib/postgresql/data
+
+volumes:
+  hive-metastore-db:
+
 # port :10000
 # Purpose: Client connections
 # Who uses it:
 # Beeline
 # JDBC / ODBC clients
-# Spark / external apps
+# external apps
 # Protocol: Thrift over TCP
 # -------------------------------------------------------------------------------------
 # port 10002
@@ -26,10 +59,11 @@ services:
 # REST-like access (if enabled)
 # Protocol: HTTP
 
-
+#--------------------------------------------------
+# port 9083
+# Purpose: Hive Metastore service
+# Who uses it:
+# spark with Hive support
 #--------------------------------------------------
 
 ##the data will be found in the /var/lib/hive/data from youre machine 
-
-volumes:
-  hive-data:

@@ -1,0 +1,13 @@
+{
+  "customer": {
+    "name": "string",
+    "phone": "string",
+    "wallet": "double"
+  },
+  "driver": {
+    "name": "string",
+    "phone": "string",
+    "wallet": "double",
+    "vehicle": "string"
+  }
+}
